@@ -1,0 +1,57 @@
+#!/bin/bash
+
+set -e
+
+print_usage() {
+    echo todo
+}
+
+
+# Парсинг аргументов
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --env-file)
+            set -o allexport
+            source $1
+            set +o allexport
+            shift
+            ;;
+        -h|--help)
+            print_usage
+            exit
+            ;;
+        *)
+            echo "Unknown option: $1"
+            print_usage
+            exit 1
+            ;;
+    esac
+done
+
+# Подключение EPEL
+if ! dnf repolist | grep -q epel; then
+    sudo dnf config-manager --set-enabled crb
+    sudo dnf install epel-release -y
+fi
+
+# Обновить систему
+sudo dnf update -y
+
+# Установить пакеты
+sudo dnf install git helix -y
+
+
+# Установить новый hostname
+if [[ -n "$NEW_HOSTNAME" ]]; then
+    sudo hostnamectl set-hostname "$NEW_HOSTNAME"
+    echo "Hostname changed to '$NEW_HOSTNAME'"
+fi
+
+# Установить новый SSH порт
+if [[ -n "$NEW_SSH_PORT" ]]; then
+    sudo ./change-ssh-port "$NEW_SSH_PORT"
+    echo "SSH port changed to '$NEW_SSH_PORT'"
+fi
+
+# Установить sudo без пароля
+sudo ./wheel-nopasswd

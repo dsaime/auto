@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -e
+
+# https://github.com/helmuthdu/aui/blob/38d6da02aa1b9c7c1ece167798a46d496dc884dd/lilo#L366
+## Uncomment to allow members of group wheel to execute any command without a password (not secure)
+sed -nE '/#.*%wheel\s+ALL=\(ALL(:ALL)\)\s+NOPASSWD: ALL/s/^(# )//p' /etc/sudoers
