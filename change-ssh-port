@@ -1,0 +1,40 @@
+#!/bin/bash
+
+set -e
+
+print_usage() {
+    echo "Usage: sudo $(basename "$0") [PORT] | [OPTION]"
+    echo
+    echo "Sets a new SSH port in /etc/ssh/sshd_config."
+    echo
+    echo "Options:"
+    echo "  -c, --comment         Comment out any existing 'Port' line"
+    echo "  -h, --help            Show this help message"
+    echo
+    echo "Arguments:"
+    echo "  PORT                  A valid port number (1024–65535)"
+    echo
+    echo "Examples:"
+    echo "  $(basename "$0") 2222      # Set new SSH port to 2222"
+    echo "  $(basename "$0") -c        # Comment out current Port directive"
+    echo "  $(basename "$0") -h        # Show help"
+}
+
+if [[ $1 = "-h" || $1 = "-help" ]]; then
+    print_usage
+    exit
+fi
+
+if [[ $1 = "-c" || $1 = "-comment" ]]; then
+    sed -Ei 's/^(Port [0-9]+)/#\1/' /etc/ssh/sshd_config
+    exit
+fi
+
+if [[ ! $1 =~ ^[0-9]+$ ]]; then
+    echo "Invalid port number: $1"
+    print_usage
+    exit 1
+fi
+
+
+sed -Ei "s/#?Port [0-9]+/Port $1/" /etc/ssh/sshd_config
