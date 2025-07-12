@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -e
+
+rc_file=~/.bashrc
+
+ps='export PS1="\[\e[38;5;216m\][\u\[\e[38;5;220m\]@\[\e[38;5;222m\]\h] \[\e[38;5;229m\]\w \[\e[0m\]$ "'
+sed -i '/^export PS1=/s/^/# /' $rc_file
+
+echo "$ps" >> $rc_file

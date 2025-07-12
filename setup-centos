@@ -6,7 +6,6 @@ print_usage() {
     echo todo
 }
 
-
 # Парсинг аргументов
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -28,18 +27,31 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 
-# Подключение EPEL
-if ! dnf repolist | grep -q epel; then
-    sudo dnf config-manager --set-enabled crb
-    sudo dnf install epel-release -y
+
+# Установить sudo без пароля
+sudo ./wheel-nopasswd
+
+# Создать нового пользователя
+if [[ -n "$NEW_USER" ]] && ! id "$NEW_USER" >/dev/null 2>&1; then
+    sudo useradd -m -G wheel "$NEW_USER"
+    echo "User '$NEW_USER' created"
+    echo "Please run 'passwd $NEW_USER' to set a password"
+
+    if [[ -n "$NEW_USER_SSH_KEY" ]]; then
+        ssh_dir="/home/$NEW_USER/.ssh"
+        sudo mkdir -p "$ssh_dir"
+        echo "$NEW_USER_SSH_KEY" | sudo tee -a "$ssh_dir"/authorized_keys
+        sudo chmod 700 "$ssh_dir"
+        sudo chmod 600 "$ssh_dir"/authorized_keys
+        sudo chown -R "$NEW_USER:$NEW_USER" "$ssh_dir"
+        echo "SSH key added for user '$NEW_USER'"
+    fi
+
+    su "$NEW_USER"
 fi
 
-# Обновить систему
-sudo dnf update -y
-
-# Установить пакеты
-sudo dnf install git helix -y
-
+# Установить PS1
+./change-ps1
 
 # Установить новый hostname
 if [[ -n "$NEW_HOSTNAME" ]]; then
@@ -51,7 +63,17 @@ fi
 if [[ -n "$NEW_SSH_PORT" ]]; then
     sudo ./change-ssh-port "$NEW_SSH_PORT"
     echo "SSH port changed to '$NEW_SSH_PORT'"
+    sudo systemctl restart sshd
 fi
 
-# Установить sudo без пароля
-sudo ./wheel-nopasswd
+# Подключение EPEL
+if ! dnf repolist | grep -q epel; then
+    sudo dnf config-manager --set-enabled crb
+    sudo dnf install epel-release -y
+fi
+
+# Обновить систему
+sudo dnf update -y
+
+# Установить пакеты
+sudo dnf install git helix -y
