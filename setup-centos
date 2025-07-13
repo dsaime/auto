@@ -3,7 +3,22 @@
 set -e
 
 print_usage() {
-    echo todo
+    echo "Usage: $(basename "$0") [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --env-file FILE         Load environment variables from FILE"
+    echo "  -h, --help              Show this help message and exit"
+    echo ""
+    echo "Environment Variables (can be set in env-file or directly):"
+    echo "  NEW_USER                Name of the new user to create"
+    echo "  NEW_USER_SSH_KEY        SSH public key for the new user"
+    echo "  NEW_HOSTNAME            Hostname to set for the system"
+    echo "  NEW_SSH_PORT            Port to use for SSH server"
+    echo "  SERVER_NAME_FOR_CERT    Domain name for Let's Encrypt certificate setup"
+    echo ""
+    echo "Example:"
+    echo "  NEW_USER=admin $(basename "$0")"
+    echo "  $(basename "$0") --env-file .env"
 }
 
 # Парсинг аргументов
@@ -88,9 +103,9 @@ sudo dnf update -y
 sudo loginctl enable-linger
 
 # Установить и запустить certbot
-if [[ -n "$SERVER_NAME_FOR_SERT" ]]; then
+if [[ -n "$SERVER_NAME_FOR_CERT" ]]; then
     sudo dnf install certbot nginx python3-certbot-nginx -y
-    sudo sed -i "s/server_name  _/server_name  $SERVER_NAME_FOR_SERT/" /etc/nginx/nginx.conf
+    sudo sed -i "s/server_name  _/server_name  $SERVER_NAME_FOR_CERT/" /etc/nginx/nginx.conf
     sudo nginx -t
     sudo systemctl start nginx
     sudo certbot --nginx

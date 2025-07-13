@@ -3,7 +3,7 @@
 set -e
 
 print_usage() {
-    echo "Usage: sudo $(basename "$0") [PORT] | [OPTION]"
+    echo "Usage: sudo $(basename "$0") [PORT] | [OPTIONS]"
     echo
     echo "Sets a new SSH port in /etc/ssh/sshd_config."
     echo
