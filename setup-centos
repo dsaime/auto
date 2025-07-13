@@ -64,6 +64,12 @@ if [[ -n "$NEW_SSH_PORT" ]]; then
     sudo ./change-ssh-port "$NEW_SSH_PORT"
     echo "SSH port changed to '$NEW_SSH_PORT'"
     sudo systemctl restart sshd
+    echo "SSH service restarted"
+    
+    sudo firewall-cmd --permanent --service=ssh --remove-port=22/tcp
+    echo "SSH port removed from firewall"
+    sudo firewall-cmd --permanent --service=ssh --add-port="$NEW_SSH_PORT"/tcp
+    echo "New SSH port added to firewall"
 fi
 
 # Подключение EPEL
@@ -75,11 +81,19 @@ fi
 # Обновить систему
 sudo dnf update -y
 
-# Установить пакеты
-sudo dnf install git helix -y
-
 # Дать права ограничивать использование cpu
 ./enable-cpu-cpuset-limit
 
 # Включить автоматический запуск сессии systemd
 sudo loginctl enable-linger
+
+# Установить и запустить certbot
+if [[ -n "$SERVER_NAME_FOR_SERT" ]]; then
+    sudo dnf install certbot nginx python3-certbot-nginx -y
+    sudo sed -i "s/server_name  _/server_name  $SERVER_NAME_FOR_SERT/" /etc/nginx/nginx.conf
+    sudo nginx -t
+    sudo systemctl start nginx
+    sudo certbot --nginx
+fi
+
+sudo systemctl enable --now firewalld
