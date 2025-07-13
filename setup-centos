@@ -112,3 +112,23 @@ if [[ -n "$SERVER_NAME_FOR_CERT" ]]; then
 fi
 
 sudo systemctl enable --now firewalld
+
+# Создать сервис для Traefik
+if ! sudo firewall-cmd --query-service=traefik; then
+    sudo firewall-cmd --permanent --new-service=traefik
+    sudo firewall-cmd --permanent --service=traefik --add-port=80/tcp
+    sudo firewall-cmd --permanent --service=traefik --add-port=443/tcp
+fi
+
+# Отключить все, кроме ssh, сервисы
+for service in $(sudo firewall-cmd --zone=public --list-services); do
+    if [[ "$service" == "ssh" ]]; then
+        continue
+    fi
+    sudo firewall-cmd --permanent --zone=public --remove-service="$service"
+done
+
+# Включить необходимые сервисы
+sudo firewall-cmd --permanent --zone=public --add-service=ssh
+sudo firewall-cmd --permanent --zone=public --add-service=traefik
+
