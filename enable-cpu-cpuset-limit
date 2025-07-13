@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -e
+
+# delegete_file=/etc/systemd/system/user@.service.d/delegate.conf
+delegete_file=./test.tmp
+
+
+if [[ ! -a "$delegete_file" ]]; then
+    # Создать файл
+    sudo tee "$delegete_file" << EOF
+[Service]
+Delegate=memory pids cpu cpuset
+EOF
+    echo "'$delegete_file' created"
+    exit
+else
+    echo "'$delegete_file' already exists"
+fi
+
+if ! grep -qE '^\[Service\]' "$delegete_file" && ! grep -qE '^Delegate=' "$delegete_file"; then
+    echo "'$delegete_file' is not a valid systemd unit file"
+    exit 1
+fi
+
+if grep -qE -e '^Delegate=*cpuset*' -e '^Delegate=*cpu*' "$delegete_file"; then
+    echo "'$delegete_file' already contains cpu and cpuset"
+    exit
+fi
+
+sudo sed -i -E 's/^Delegate=/Delegate=cpu cpuset /' "$delegete_file"
+echo "'$delegete_file' updated"
+

@@ -77,3 +77,9 @@ sudo dnf update -y
 
 # Установить пакеты
 sudo dnf install git helix -y
+
+# Дать права ограничивать использование cpu
+./enable-cpu-cpuset-limit
+
+# Включить автоматический запуск сессии systemd
+sudo loginctl enable-linger

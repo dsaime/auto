@@ -26,7 +26,7 @@ if [[ $1 = "-h" || $1 = "-help" ]]; then
 fi
 
 if [[ $1 = "-c" || $1 = "-comment" ]]; then
-    sed -Ei 's/^(Port [0-9]+)/#\1/' /etc/ssh/sshd_config
+    sed -E -i 's/^(Port [0-9]+)/#\1/' /etc/ssh/sshd_config
     exit
 fi
 
@@ -37,4 +37,4 @@ if [[ ! $1 =~ ^[0-9]+$ ]]; then
 fi
 
 
-sed -Ei "s/#?Port [0-9]+/Port $1/" /etc/ssh/sshd_config
+sed -E -i "s/#?Port [0-9]+/Port $1/" /etc/ssh/sshd_config
